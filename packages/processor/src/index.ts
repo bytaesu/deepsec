@@ -9,6 +9,7 @@ import {
   dataDir,
   defaultConcurrency,
   ensureFindingIds,
+  findProject,
   getRegistry,
   isPidAlive,
   loadAllFileRecords,
@@ -237,6 +238,8 @@ export async function process(params: {
   } catch {
     // No config.json — that's fine
   }
+  // `config.json` wins over the declaration when both carry the field.
+  const promptAppend = projectConfig.promptAppend ?? findProject(projectId)?.promptAppend;
 
   // Tech detection result drives per-batch threat highlights. Read once
   // from `data/<id>/tech.json` (written by `scan()`); empty list when the
@@ -256,7 +259,7 @@ export async function process(params: {
   const buildBatchPrompt = (batch: FileRecord[]): string => {
     const batchFilePaths = batch.map((r) => r.filePath);
     if (customPromptTemplate !== undefined) {
-      const { text } = resolvePromptAppend(projectConfig.promptAppend, batchFilePaths);
+      const { text } = resolvePromptAppend(promptAppend, batchFilePaths);
       return text ? `${customPromptTemplate}\n${text}` : customPromptTemplate;
     }
     const batchSlugs = Array.from(
@@ -274,7 +277,7 @@ export async function process(params: {
       batchLanguages,
       batchFilePaths,
       projectInfo,
-      promptAppend: projectConfig.promptAppend,
+      promptAppend,
     });
     return prompt;
   };
