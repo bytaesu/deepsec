@@ -95,9 +95,9 @@ files:
 
 ```ts
 promptAppend: [
-  { paths: ["src/payments/**"], text: "Check for amount tampering and missing idempotency keys." },
-  { paths: ["src/uploads/**"], text: "Check for path traversal and missing content-type validation." },
-  { paths: ["src/admin/**"], text: "Check that every route has an authorization guard." },
+  { paths: ["apps/web/**"], text: "Confirm nothing renders stored HTML without escaping." },
+  { paths: ["packages/db/**"], text: "Confirm every query is parameterized." },
+  { paths: ["infra/**"], text: "Confirm no bucket or security group is world-readable." },
 ]
 ```
 
@@ -107,12 +107,12 @@ guidance and path-scoped guidance can live in one list:
 ```ts
 promptAppend: [
   { text: "Flag any logger that swallows errors." },
-  { paths: ["src/payments/**"], text: "Check for amount tampering." },
+  { paths: ["packages/db/**"], text: "Confirm every query is parameterized." },
 ]
 ```
 
 Matched entries are joined in declaration order. Scoping is per batch, not
-per file: a batch mixing `src/payments/` and `src/admin/` files carries both
+per file: a batch mixing `apps/web/` and `packages/db/` files carries both
 entries. Lower `--batch-size` to narrow it further.
 
 ### Globs
