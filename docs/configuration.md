@@ -118,7 +118,7 @@ entries. Lower `--batch-size` to narrow it further.
 ### Globs
 
 Patterns match the file path relative to the project root, using the same
-rules as a matcher's `filePatterns`.
+options the scanner compiles declarative matcher globs with.
 
 | Pattern | Matches |
 |---|---|
@@ -127,25 +127,15 @@ rules as a matcher's `filePatterns`.
 | `*.ts` | only `.ts` at the project root, because `*` never crosses a `/` |
 | `SRC/**` | nothing, patterns are case-sensitive |
 | `src\api\**` | nothing, `\` escapes and `/` is the only separator |
-| `#src/**` | nothing, a leading `#` is a comment |
+
+A leading `!` or `#` is a literal character here, not negation or a comment.
 
 An entry applies when **any** of its patterns matches, so one pattern cannot
-subtract another. A leading `!` does not do it: `!p` means "every path that
-is not `p`".
+subtract another. To narrow an entry, list the paths you want. To drop files
+from the review entirely, use the project's `ignorePaths`.
 
-```ts
-// Applies to every batch, not just the API surface.
-{ paths: ["src/api/**", "!src/api/generated/**"], text: "..." }
-```
-
-| File | `src/api/**` | `!src/api/generated/**` | applies |
-|---|---|---|---|
-| `src/api/users.ts` | yes | yes | yes |
-| `src/api/generated/schema.ts` | yes | no | **yes** |
-| `README.md` | no | yes | **yes** |
-
-To narrow an entry, list the paths you want. To drop files from the review
-entirely, use the project's `ignorePaths`.
+An entry that declares `paths` but gives an unusable value, such as a string
+instead of an array, is skipped rather than applied everywhere.
 
 ## INFO.md
 

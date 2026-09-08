@@ -207,10 +207,28 @@ describe("resolvePromptAppend", () => {
     expect(result.text).toBe("Scoped.");
   });
 
-  it("treats a non-array paths value as unscoped", () => {
-    const result = resolvePromptAppend([{ paths: "src/api/**", text: "Standing." }] as never, [
-      "db/seed.ts",
-    ]);
-    expect(result.text).toBe("Standing.");
+  it("skips an entry whose paths is not an array", () => {
+    // A typo must narrow, never broadcast. `paths: "src/api/**"` (string
+    // instead of array) would otherwise apply the rule to every batch.
+    for (const bad of ["src/api/**", {}, 7]) {
+      const result = resolvePromptAppend([{ paths: bad, text: "Scoped." }] as never, [
+        "src/api/users.ts",
+      ]);
+      expect(result).toEqual({ text: "", rulesApplied: 0 });
+    }
+  });
+
+  it("selects nothing for an entry whose paths is empty", () => {
+    const result = resolvePromptAppend([{ paths: [], text: "Scoped." }], ["src/api/users.ts"]);
+    expect(result).toEqual({ text: "", rulesApplied: 0 });
+  });
+
+  it("treats a leading ! or # as a literal character, not glob syntax", () => {
+    // Matches how the scanner compiles declarative matcher globs.
+    const result = resolvePromptAppend(
+      [{ paths: ["!src/**"], text: "Negated." }],
+      ["src/api/users.ts"],
+    );
+    expect(result.text).toBe("");
   });
 });

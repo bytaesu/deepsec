@@ -128,15 +128,20 @@ function renderFrameworkSection(
 }
 
 /**
- * Whether a rule's globs select any file in the batch. A rule that declares
- * no usable patterns is unscoped and applies everywhere.
+ * Whether a rule's globs select any file in the batch. Omitting `paths` is the
+ * documented unscoped form. Declaring it as anything but an array is a typo,
+ * and narrowing to nothing is safer there than broadcasting to every batch.
  */
 function appliesToBatch(patterns: unknown, files: string[]): boolean {
-  if (!Array.isArray(patterns) || patterns.length === 0) return true;
-  // Same options as a matcher's `filePatterns` in the scanner.
+  if (patterns === undefined) return true;
+  if (!Array.isArray(patterns)) return false;
+  // Same options the scanner compiles declarative matcher globs with, so a
+  // leading `!` or `#` stays a literal character rather than glob syntax.
   return files.some((file) =>
     patterns.some(
-      (pat) => typeof pat === "string" && minimatch(file, pat, { dot: true, nocase: false }),
+      (pat) =>
+        typeof pat === "string" &&
+        minimatch(file, pat, { dot: true, nocase: false, nonegate: true, nocomment: true }),
     ),
   );
 }
